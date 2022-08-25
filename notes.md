@@ -68,3 +68,6 @@ A Move module doesn't have its own storage. Instead, Move "global storage" (what
 每一个地址下有resource（values）和 modules（code）。
 
 
+
+
+hhhhh

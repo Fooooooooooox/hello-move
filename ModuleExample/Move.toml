@@ -1,5 +1,5 @@
 [package]
-name = "ModuleExample"
+name = "BasicCoin"
 version = "0.0.0"
 
 [dependencies]
@@ -7,3 +7,4 @@ MoveStdlib = { local = "/Users/foooox/move/language/move-stdlib", addr_subst = {
 
 [addresses]
 std =  "0x1"
+NamedAddr = "0xCAFE"
