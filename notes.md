@@ -18,6 +18,26 @@ there is a tutorial in move folder and it's nice: /Users/foooox/move/language/do
 move new TestExample; cd TestExample
 ```
 
+I used `move build` at first but it always stuck, so I changed into aptos-cli.
+aptos-cli can be found here: 
+
+https://github.com/aptos-labs/aptos-core/releases?q=cli&expanded=true
+
+https://aptos.dev/cli-tools/aptos-cli-tool/install-aptos-cli
+```shell
+aptos move compile
+```
+
+# about move.toml
+## manifest
+section of manifest: must provide exactly one of 'local' or 'git' or 'aptos' for dependency."
+
+for example:
+```shell
+local = "../../../../move-stdlib/"
+```
+the path here is: /Users/foooox/move/language/move-stdlib
+
 # modules & scripts
 
 modules: libraries that define struct types(global storage) and functions(the rules for updating storage)
