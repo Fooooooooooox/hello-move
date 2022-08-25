@@ -38,6 +38,14 @@ local = "../../../../move-stdlib/"
 ```
 the path here is: /Users/foooox/move/language/move-stdlib
 
+## rev
+rev here is the commit hash
+
+(i don't see the meaning of this para... )
+
+so i just leave it blank
+rev=<git commit hash>
+
 # modules & scripts
 
 modules: libraries that define struct types(global storage) and functions(the rules for updating storage)

@@ -3,7 +3,7 @@ compiled_package_info:
   package_name: TestExample
   address_alias_instantiation:
     std: "0000000000000000000000000000000000000000000000000000000000000001"
-  source_digest: 8D059748F6906AD174491FA8A8D20691DA6E523197E8918106E0B290736F8F58
+  source_digest: B72BF064208FF0166477B4A02D86C63EE3D10AA4CB45EAD9CA0652EF7894C219
   build_flags:
     dev_mode: false
     test_mode: false
