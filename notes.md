@@ -41,6 +41,8 @@ the path here is: /Users/foooox/move/language/move-stdlib
 ## rev
 rev here is the commit hash
 
+you can simply use `rev = "main"`
+
 (i don't see the meaning of this para... )
 
 so i just leave it blank
