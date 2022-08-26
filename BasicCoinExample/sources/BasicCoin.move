@@ -29,12 +29,15 @@ module NamedAddr::BasicCoin {
         let empty_coin = Coin { value: 0 };
         // ! here only means that this is a macro-like function
         // check here: https://move-language.github.io/move/abort-and-assert.html#assert
+        // EALREADY_HAS_BALANCE is an error message that will be invoked if the condition is not satisfied
         assert!(!exists<Balance>(signer::address_of(account)), EALREADY_HAS_BALANCE);
+        // assert! is equal to if (condition) () else abort code
         // you can use move_to func to Balance (cuz Balance has key ability)
         move_to(account, Balance { coin: empty_coin });
     }
 
     /// Mint `amount` tokens to `mint_addr`. Mint must be approved by the module owner.
+    // acquires here means this function access resources (move_from, borrow_global, or borrow_global_mut)
     public fun mint(module_owner: &signer, mint_addr: address, amount: u64) acquires Balance {
         // Only the owner of the module can initialize this module
         assert!(signer::address_of(module_owner) == MODULE_OWNER, ENOT_MODULE_OWNER);
@@ -45,16 +48,20 @@ module NamedAddr::BasicCoin {
 
     /// Returns the balance of `owner`.
     public fun balance_of(owner: address): u64 acquires Balance {
+        // borrow_global returns a immutable reference (read only)
         borrow_global<Balance>(owner).coin.value
     }
 
     /// Transfers `amount` of tokens from `from` to `to`.
+    // &signer == msg.sender
     public fun transfer(from: &signer, to: address, amount: u64) acquires Balance {
+        // you should withdraw first and then transfer 
         let check = withdraw(signer::address_of(from), amount);
         deposit(to, check);
     }
 
     /// Withdraw `amount` number of tokens from the balance under `addr`.
+    // withdraw returns a Coin { value: amount }
     fun withdraw(addr: address, amount: u64) : Coin acquires Balance {
         let balance = balance_of(addr);
         // balance must be greater than the withdraw amount
@@ -67,8 +74,11 @@ module NamedAddr::BasicCoin {
     /// Deposit `amount` number of tokens to the balance under `addr`.
     fun deposit(addr: address, check: Coin) acquires Balance{
         let balance = balance_of(addr);
+        // when publishing Balance move_to is used.
+        // when you want to change the value of it, you should use borrow_global_mut to return a muttable reference.
         let balance_ref = &mut borrow_global_mut<Balance>(addr).coin.value;
         let Coin { value } = check;
+        // * is used!
         *balance_ref = balance + value;
     }
 
@@ -77,6 +87,7 @@ module NamedAddr::BasicCoin {
     fun mint_non_owner(account: signer) acquires Balance {
         // Make sure the address we've chosen doesn't match the module
         // owner address
+        // the module owner is "0xCAFE"
         publish_balance(&account);
         assert!(signer::address_of(&account) != MODULE_OWNER, 0);
         mint(&account, @0x1, 10);
