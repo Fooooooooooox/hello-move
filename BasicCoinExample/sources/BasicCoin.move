@@ -116,6 +116,13 @@ module NamedAddr::BasicCoin {
     }
 
     // EXERCISE: Write `balance_of_dne` test here!
+    // dne: recource doesn't exist
+    #[test(account = @0x1)]
+    #[expected_failure]
+    fun balance_of_dne(account: signer) acquires Balance {
+        let addr = signer::address_of(&account);
+        balance_of(addr);
+    }
 
     #[test]
     #[expected_failure]

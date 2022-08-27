@@ -67,7 +67,13 @@ struct GlobalStorage {
 A Move module doesn't have its own storage. Instead, Move "global storage" (what we call our blockchain state) is indexed by addresses. Under each address there are Move modules (code) and Move resources (values).
 每一个地址下有resource（values）和 modules（code）。
 
+# account & address & signer
 
+`account` is equal to `address` i think.
 
+check here: https://move-language.github.io/move/address.html?highlight=account#address
 
-hhhhh
+```rust
+let account = @0x1
+```
+
