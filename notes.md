@@ -77,3 +77,43 @@ check here: https://move-language.github.io/move/address.html?highlight=account#
 let account = @0x1
 ```
 
+# how to install boogie (prover)
+
+```shell
+# run the following in move repo root directory
+cd aptos-core/
+./scripts/dev_setup.sh -yp
+source ~/.profile
+```
+
+but when i ran `move prove`, i got this error:
+`Error: expected at least version 2.15.7 but found 2.9.6.0 for `boogie``.
+
+so i had to upgrade boogie myself:
+
+```shell
+dotnet  tool uninstall boogie -g
+
+```
+
+## generic & phantom type
+
+`generic` and `phantom` have similar functions as `abstract` and `interface` in solidity.
+
+```rust
+struct Coin<phantom CoinType> has store {
+    value: u64
+}
+
+struct Balance<phantom CoinType> has key {
+    coin: Coin<CoinType>
+}
+
+/// Publish an empty balance resource under `account`'s address. This function must be called before
+/// minting or transferring to the account.
+public fun publish_balance<CoinType>(account: &signer) {
+    let empty_coin = Coin<CoinType> { value: 0 };
+    assert!(!exists<Balance<CoinType>>(signer::address_of(account)), EALREADY_HAS_BALANCE);
+    move_to(account, Balance<CoinType> { coin: empty_coin });
+}
+```

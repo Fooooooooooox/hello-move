@@ -1,151 +1,62 @@
-/// This module defines a minimal Coin and Balance.
+/// This module defines a minimal and generic Coin and Balance.
 module NamedAddr::BasicCoin {
     use std::signer;
-
-    /// Address of the owner of this module
-    // NamedAddr is defined in Move.toml
-    const MODULE_OWNER: address = @NamedAddr;
 
     /// Error codes
     const ENOT_MODULE_OWNER: u64 = 0;
     const EINSUFFICIENT_BALANCE: u64 = 1;
     const EALREADY_HAS_BALANCE: u64 = 2;
 
-    // store and key are type abilities (check here:https://move-language.github.io/move/abilities.html?highlight=store#store)
-    // The store ability allows values of types with this ability to exist inside of a struct (resource) in global storage, but not necessarily as a top-level resource in global storage.
-    struct Coin has store {
+    struct Coin<phantom CoinType> has store {
         value: u64
     }
 
-    /// Struct representing the balance of each address.
-    // The key ability allows the type to serve as a key for global storage operations. It gates all global storage operations, so in order for a type to be used with move_to, borrow_global, move_from, etc., the type must have the key ability. 
-    struct Balance has key {
-        coin: Coin
+    struct Balance<phantom CoinType> has key {
+        coin: Coin<CoinType>
     }
 
     /// Publish an empty balance resource under `account`'s address. This function must be called before
     /// minting or transferring to the account.
-    public fun publish_balance(account: &signer) {
-        let empty_coin = Coin { value: 0 };
-        // ! here only means that this is a macro-like function
-        // check here: https://move-language.github.io/move/abort-and-assert.html#assert
-        // EALREADY_HAS_BALANCE is an error message that will be invoked if the condition is not satisfied
-        assert!(!exists<Balance>(signer::address_of(account)), EALREADY_HAS_BALANCE);
-        // assert! is equal to if (condition) () else abort code
-        // you can use move_to func to Balance (cuz Balance has key ability)
-        move_to(account, Balance { coin: empty_coin });
+    public fun publish_balance<CoinType>(account: &signer) {
+        let empty_coin = Coin<CoinType> { value: 0 };
+        assert!(!exists<Balance<CoinType>>(signer::address_of(account)), EALREADY_HAS_BALANCE);
+        move_to(account, Balance<CoinType> { coin: empty_coin });
     }
 
-    /// Mint `amount` tokens to `mint_addr`. Mint must be approved by the module owner.
-    // acquires here means this function access resources (move_from, borrow_global, or borrow_global_mut)
-    public fun mint(module_owner: &signer, mint_addr: address, amount: u64) acquires Balance {
-        // Only the owner of the module can initialize this module
-        assert!(signer::address_of(module_owner) == MODULE_OWNER, ENOT_MODULE_OWNER);
-
-        // Deposit `amount` of tokens to `mint_addr`'s balance
-        deposit(mint_addr, Coin { value: amount });
+    /// Mint `amount` tokens to `mint_addr`. This method requires a witness with `CoinType` so that the
+    /// module that owns `CoinType` can decide the minting policy.
+    public fun mint<CoinType: drop>(mint_addr: address, amount: u64, _witness: CoinType) acquires Balance {
+        // Deposit `total_value` amount of tokens to mint_addr's balance
+        deposit(mint_addr, Coin<CoinType> { value: amount });
     }
 
-    /// Returns the balance of `owner`.
-    public fun balance_of(owner: address): u64 acquires Balance {
-        // borrow_global returns a immutable reference (read only)
-        borrow_global<Balance>(owner).coin.value
+    public fun balance_of<CoinType>(owner: address): u64 acquires Balance {
+        borrow_global<Balance<CoinType>>(owner).coin.value
     }
 
-    /// Transfers `amount` of tokens from `from` to `to`.
-    // &signer == msg.sender
-    public fun transfer(from: &signer, to: address, amount: u64) acquires Balance {
-        // you should withdraw first and then transfer 
-        let check = withdraw(signer::address_of(from), amount);
-        deposit(to, check);
+    spec balance_of {
+        pragma aborts_if_is_strict;
     }
 
-    /// Withdraw `amount` number of tokens from the balance under `addr`.
-    // withdraw returns a Coin { value: amount }
-    fun withdraw(addr: address, amount: u64) : Coin acquires Balance {
-        let balance = balance_of(addr);
-        // balance must be greater than the withdraw amount
+    /// Transfers `amount` of tokens from `from` to `to`. This method requires a witness with `CoinType` so that the
+    /// module that owns `CoinType` can  decide the transferring policy.
+    public fun transfer<CoinType: drop>(from: &signer, to: address, amount: u64, _witness: CoinType) acquires Balance {
+        let check = withdraw<CoinType>(signer::address_of(from), amount);
+        deposit<CoinType>(to, check);
+    }
+
+    fun withdraw<CoinType>(addr: address, amount: u64) : Coin<CoinType> acquires Balance {
+        let balance = balance_of<CoinType>(addr);
         assert!(balance >= amount, EINSUFFICIENT_BALANCE);
-        let balance_ref = &mut borrow_global_mut<Balance>(addr).coin.value;
+        let balance_ref = &mut borrow_global_mut<Balance<CoinType>>(addr).coin.value;
         *balance_ref = balance - amount;
-        Coin { value: amount }
+        Coin<CoinType> { value: amount }
     }
 
-    /// Deposit `amount` number of tokens to the balance under `addr`.
-    fun deposit(addr: address, check: Coin) acquires Balance{
-        let balance = balance_of(addr);
-        // when publishing Balance move_to is used.
-        // when you want to change the value of it, you should use borrow_global_mut to return a muttable reference.
-        let balance_ref = &mut borrow_global_mut<Balance>(addr).coin.value;
+    fun deposit<CoinType>(addr: address, check: Coin<CoinType>) acquires Balance{
+        let balance = balance_of<CoinType>(addr);
+        let balance_ref = &mut borrow_global_mut<Balance<CoinType>>(addr).coin.value;
         let Coin { value } = check;
-        // * is used!
         *balance_ref = balance + value;
-    }
-
-    #[test(account = @0x1)] // Creates a signer for the `account` argument with address `@0x1`
-    #[expected_failure] // This test should abort
-    fun mint_non_owner(account: signer) acquires Balance {
-        // Make sure the address we've chosen doesn't match the module
-        // owner address
-        // the module owner is "0xCAFE"
-        publish_balance(&account);
-        assert!(signer::address_of(&account) != MODULE_OWNER, 0);
-        mint(&account, @0x1, 10);
-    }
-
-    #[test(account = @NamedAddr)] // Creates a signer for the `account` argument with the value of the named address `NamedAddr`
-    fun mint_check_balance(account: signer) acquires Balance {
-        let addr = signer::address_of(&account);
-        publish_balance(&account);
-        mint(&account, @NamedAddr, 42);
-        assert!(balance_of(addr) == 42, 0);
-    }
-
-    #[test(account = @0x1)]
-    fun publish_balance_has_zero(account: signer) acquires Balance {
-        let addr = signer::address_of(&account);
-        publish_balance(&account);
-        assert!(balance_of(addr) == 0, 0);
-    }
-
-    #[test(account = @0x1)]
-    #[expected_failure(abort_code = 2)] // Can specify an abort code
-    fun publish_balance_already_exists(account: signer) {
-        publish_balance(&account);
-        publish_balance(&account);
-    }
-
-    // EXERCISE: Write `balance_of_dne` test here!
-    // dne: recource doesn't exist
-    #[test(account = @0x1)]
-    #[expected_failure]
-    fun balance_of_dne(account: signer) acquires Balance {
-        let addr = signer::address_of(&account);
-        balance_of(addr);
-    }
-
-    #[test]
-    #[expected_failure]
-    fun withdraw_dne() acquires Balance {
-        // Need to unpack the coin since `Coin` is a resource
-        Coin { value: _ } = withdraw(@0x1, 0);
-    }
-
-    #[test(account = @0x1)]
-    #[expected_failure] // This test should fail
-    fun withdraw_too_much(account: signer) acquires Balance {
-        let addr = signer::address_of(&account);
-        publish_balance(&account);
-        Coin { value: _ } = withdraw(addr, 1);
-    }
-
-    #[test(account = @NamedAddr)]
-    fun can_withdraw_amount(account: signer) acquires Balance {
-        publish_balance(&account);
-        let amount = 1000;
-        let addr = signer::address_of(&account);
-        mint(&account, addr, amount);
-        let Coin { value } = withdraw(addr, amount);
-        assert!(value == amount, 0);
     }
 }
