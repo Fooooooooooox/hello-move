@@ -5,7 +5,7 @@ z3 already exists at /usr/local/bin/z3
 but this install will go to /Users/foooox/bin//z3.
 you may want to remove the shared instance to avoid version confusion
 ```
-it stucks here
+it get stuck here
 
 i solved this by removing /usr/local/bin/z3
 
@@ -115,5 +115,44 @@ public fun publish_balance<CoinType>(account: &signer) {
     let empty_coin = Coin<CoinType> { value: 0 };
     assert!(!exists<Balance<CoinType>>(signer::address_of(account)), EALREADY_HAS_BALANCE);
     move_to(account, Balance<CoinType> { coin: empty_coin });
-}
+```
+上面这个就相当于定义了erc20的基本函数，相当于openzepplin提供的ierc20
+使用这个模板 =》 Instantiation
+
+## how to use aptos-cli?
+https://aptos.dev/cli-tools/aptos-cli-tool/use-aptos-cli
+
+init a package using move:
+
+```shell
+aptos move init --name my_project
+```
+
+init account on testnet:
+
+```shell
+aptos init
+```
+
+copy the generated key and put it into move.toml
+
+```toml
+[address]
+Sender="0xB1A174421E442B54B798579E5738654DB39E244BA40F7245209E220CAA534AF0"
+```
+
+compile:
+
+```shell
+aptos move compile
+```
+
+test:
+```shell
+aptos move test
+```
+
+publish package:
+```shell
+aptos move publish
 ```

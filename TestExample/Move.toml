@@ -1,9 +1,0 @@
-[package]
-name = "TestExample"
-version = "0.0.0"
-
-[dependencies]
-MoveStdlib = { local = "/Users/foooox/move/language/move-stdlib", addr_subst = { "std" = "0x1" } , subdir = "language/move-stdlib", rev = "main"}
-
-[addresses]
-std =  "0x1"
