@@ -1,0 +1,11 @@
+[package]
+name = 'example_project'
+version = '1.0.0'
+
+[dependencies.AptosFramework]
+git = 'https://github.com/aptos-labs/aptos-core.git'
+rev = 'devnet'
+subdir = 'aptos-move/framework/aptos-framework'
+
+[addresses]
+Sender = "0xAFC93B69BB6960FF6FAE5B4D5B6B6790D870A9ABEEEBE391D0707853A1054969"
