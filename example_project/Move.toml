@@ -8,4 +8,4 @@ rev = 'devnet'
 subdir = 'aptos-move/framework/aptos-framework'
 
 [addresses]
-Sender = "0xAFC93B69BB6960FF6FAE5B4D5B6B6790D870A9ABEEEBE391D0707853A1054969"
+Sender = "0xafc93b69bb6960ff6fae5b4d5b6b6790d870a9abeeebe391d0707853a1054969"

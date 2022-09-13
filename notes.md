@@ -156,3 +156,20 @@ publish package:
 ```shell
 aptos move publish
 ```
+
+## solved issues:
+### 1.
+https://github.com/aptos-labs/aptos-core/issues/4105
+
+remember keep aptos-cli to date.
+
+how to update?
+
+1. download the latest version:https://github.com/aptos-labs/aptos-core/releases?q=cli&expanded=true
+2. unzip
+3. 
+```shell
+cd ~/bin/
+mv /Users/foooox/aptos . 
+chmod +x ~/bin/aptos  
+```
